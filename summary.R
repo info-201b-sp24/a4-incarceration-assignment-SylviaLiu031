@@ -1,3 +1,5 @@
+library(dplyr)
+
 # 1. Average total prison population across all counties
 average_total_prison_pop <- prison_pop %>%
   summarise(avg_total_prison_pop = mean(total_prison_pop, na.rm = TRUE))

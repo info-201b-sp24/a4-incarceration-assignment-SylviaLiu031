@@ -1,3 +1,10 @@
+library(dplyr)
+library(ggplot2)
+library(leaflet)
+library(readr)
+library(tidyr)
+library(maps)
+library(mapdata)
 state_abbrev_to_name <- data.frame(
   state = state.abb,
   full_name = tolower(state.name)
@@ -28,3 +35,4 @@ ggplot(map_data, aes(long, lat, group = group, fill = total_prison_pop)) +
     legend.title = element_text(hjust = 0.5)
   ) +
   coord_map()
+

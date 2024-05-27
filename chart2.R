@@ -1,16 +1,13 @@
 library(dplyr)
 library(ggplot2)
+prison_pop <- read_csv("https://raw.githubusercontent.com/melaniewalsh/Neat-Datasets/main/us-prison-pop.csv")
 comparison_data <- prison_pop %>%
-  filter(!is.na(male_prison_pop) & !is.na(female_prison_pop))
+  filter(!is.na(total_prison_pop) & !is.na(black_prison_pop))
 
-ggplot(comparison_data, aes(x = male_prison_pop, y = female_prison_pop)) +
-  geom_point(alpha = 0.5) +
-  labs(
-    title = "Comparison of Male and Female Prison Populations by County",
-    x = "Male Prison Population",
-    y = "Female Prison Population"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(hjust = 0.5)
-  )
+ggplot(data = comparison_data, aes(x = total_prison_pop, y = black_prison_pop)) +
+  geom_point(color = "pink") +
+  geom_smooth(method=lm, color= "blue",  se=FALSE) +
+  labs(title = paste("Relationship Between Prison Population and Black",
+                     "Prison Population"),
+       x = "Total Prison Population",
+       y = "Black Prison Population")

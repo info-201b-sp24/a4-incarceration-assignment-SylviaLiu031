@@ -266,7 +266,7 @@ ggplot(data = comparison_data, aes(x = total_prison_pop, y = black_prison_pop)) 
   labs(title = paste("Relationship Between Prison Population and Black",
                      "Prison Population"),
        x = "Total Prison Population",
-       y = "Black Jail Population")
+       y = "Black Prison Population")
 ```
 
 
