@@ -1,71 +1,322 @@
 ---
-title: "A3: Incarceration"
+title: "A4: Incarceration"
 output: html_document
 ---
 
+```{r}
+library(dplyr)
+library(ggplot2)
+library(leaflet)
+library(readr)
+library(tidyr)
+library(maps)
+library(mapdata)
+```
+
+
 ### Introduction
 
-An introduction of the problem domain and a description of the variable(s) you are choosing to analyze (and why!)
+The data tool (trends.vera.org) is used for collecting the population of prison 
+and jail at county levels to better understand the current situation in the U.S. 
+The problem domain is an analysis of incarceration trends in the U.S. I have 
+chosen the dataset 
+[Dataset about prison population per county/state](https://github.com/melaniewalsh/Neat-Datasets/blob/main/us-prison-pop.csv?raw=true). 
+This dataset provides comprehensive data on the prison population, including 
+variables such as total prison population, prison population by race (Black, 
+White, Latinx, etc.), and prison population by gender. These variables are 
+crucial for understanding the disparities and trends in incarceration across 
+different demographic groups. Analyzing this data will allow us to explore how 
+incarceration rates vary by race and gender, and how these trends have evolved 
+over time, providing insights into systemic issues and areas that require policy
+attention. The inclusion of detailed demographic data makes this dataset a 
+valuable resource for identifying patterns of inequality and informing potential
+reforms in the criminal justice system.
+
+
+
 
 ### Summary Information
 
-Write a summary paragraph of findings that includes the 5 values calculated from your summary information R script
+```{r}
+# Load datasets
+prison_pop <- read_csv("https://raw.githubusercontent.com/melaniewalsh/Neat-Datasets/main/us-prison-pop.csv")
+```
 
-These will likely be calculated using your DPLYR skills, answering questions such as: 
+```{r}
+colnames(prison_pop)
+```
 
-- What is the average value of my variable across all the counties (in the current year)?
-- Where is my variable the highest / lowest?
-- How much has my variable change over the last N years?
+```{r}
+# 1. Average total prison population across all counties
+average_total_prison_pop <- prison_pop %>%
+  summarise(avg_total_prison_pop = mean(total_prison_pop, na.rm = TRUE))
 
-Feel free to calculate and report values that you find relevant. Again, remember that the purpose is to think about how these measure of incarceration vary by race.
+# 2. Highest Black prison population
+highest_black_prison_pop <- prison_pop %>%
+  filter(black_prison_pop == max(black_prison_pop, na.rm = TRUE)) %>%
+  select(black_prison_pop)
+
+# 3.Lowest White prison population
+lowest_white_prison_pop <- prison_pop %>%
+  filter(white_prison_pop == min(white_prison_pop, na.rm = TRUE)) %>%
+  select(white_prison_pop)
+
+# 4. Average of change in the total prison population over the past 10 years
+change_over_time <- prison_pop %>%
+  group_by(year) %>%
+  summarise(avg_prison_pop = mean(total_prison_pop, na.rm = TRUE)) %>%
+  mutate(change = avg_prison_pop - lag(avg_prison_pop)) 
+
+recent_change <- change_over_time %>%
+  filter(year %in% (max(year) - 9):max(year))
+
+# Calculate the average change over the past 10 years
+average_recent_change <- recent_change %>%
+  summarise(avg_change = mean(change, na.rm = TRUE))
+
+
+
+# 5. Average female prison population
+average_female_prison_pop <- prison_pop %>%
+  summarise(avg_female_prison_pop = mean(female_prison_pop, na.rm = TRUE))
+
+# Print the summary values
+average_total_prison_pop
+highest_black_prison_pop
+lowest_white_prison_pop
+average_recent_change
+average_female_prison_pop
+```
+
+The analysis of the incarceration data reveals several key insights.  The average 
+total prison population across all counties is approximately 361.36. The highest 
+Black prison population is 24,818.  Conversely, the lowest White prison population 
+is 0.  Over the past 10 years, the average change in the total prison population 
+has been approximately -2.41, indicating a slight decrease overall.  Additionally,
+the average female prison population across all counties stands at approximately
+31.93.  These values underscore the significant racial disparities in 
+incarceration rates, highlighting the need for policy interventions to address 
+these imbalances.  The data shows that Black populations are disproportionately 
+incarcerated, and the decrease in the overall prison population suggests changes 
+in incarceration policies or practices that may warrant further investigation.
+
+
 
 ### The Dataset
 
 Who collected the data?  
+
+The data was compiled through the collaboration of several organizations,
+including the Census of Jails, the Census of State and Federal Adult Correctional 
+Facilities, the FBI Uniform Crime Reporting
+
+
+
 How was the data collected or generated?  
+
+The data was consolidated through the cooperation of multiple organizations, 
+and they supplemented it with additional information when there were gaps.
+
+
+
 Why was the data collected?  
-How many observations (rows) are in your data?  
+
+The data was collected for understand and know the incarceration trends at
+county-levels in the U.S. comprehensively. Thus, we can a broad range of
+understanding in jail and prison population but lack the specific and exact data. 
+
+
+
+How many observations (rows) are in your data? 
+```{r}
+p_row <- nrow(prison_pop)
+p_row
+```
+There are 153811 observations in my data.
+
+
+
 How many features (columns) are in the data?  
-What, if any, ethical questions or questions of power do you need to consider when working with this data?  
+```{r}
+p_col <- ncol(prison_pop)
+p_col
+```
+
+
+What, if any, ethical questions or questions of power do you need to consider 
+when working with this data? 
+
+Working with this prison population dataset requires careful consideration of 
+ethical issues and power dynamics. There is a risk of reinforcing negative 
+stereotypes about racial groups due to the disparities highlighted in the data.
+Systemic biases in data collection, like over-policing and discriminatory 
+sentencing, can skew results. Ensuring data privacy is crucial, and the impact 
+of incomplete or missing data must be acknowledged. Ethical use of the data 
+involves advocating for fair policies and accurate, transparent communication to 
+avoid misinterpretation and promote informed discussions on criminal justice reform.
+
+
+
 What are possible limitations or problems with this data?   (at least 200 words)
+
+The dataset about prison populations per county/state from the Vera Institute of 
+Justice, while comprehensive, has several limitations and potential problems. 
+One major limitation is the presence of missing or incomplete data. Not all 
+correctional facilities report data consistently, leading to gaps that can affect 
+the reliability and accuracy of the analysis. This inconsistency can also result 
+in significant variations in how different states and counties report their 
+incarceration statistics, introducing potential biases and inaccuracies. 
+Additionally, the dataset is historical and may not fully capture recent changes
+in incarceration policies or practices. As criminal justice reform efforts gain
+traction, changes in policies, such as the reduction of mandatory minimum sentences
+or the decriminalization of certain offenses, may not be reflected in the data.
+This lag can mislead analyses that aim to assess the current state of incarceration.
+Another issue is the lack of qualitative data that can provide deeper insights into
+the reasons behind the trends. Quantitative data alone cannot fully explain the 
+socio-economic and political factors contributing to incarceration rates. Factors 
+such as changes in law enforcement practices, economic conditions, and social
+movements play a crucial role but are not captured in the dataset. Systemic biases
+within the criminal justice system, such as over-policing in minority communities 
+and discriminatory sentencing practices, can also influence the data. These biases 
+can result in an over-representation of certain racial groups, particularly Black 
+and Latinx populations, which can skew the analysis and potentially reinforce negative 
+stereotypes. Furthermore, the dataset does not account for the lived experiences 
+of incarcerated individuals or the broader impact of incarceration on communities. 
+This lack of context can lead to an incomplete understanding of the issue and hinder
+the development of holistic and effective policy solutions. Finally, the interpretation
+of the data requires careful consideration. Statistical analyses can highlight 
+disparities, but they do not always explain the underlying causes. Simplistic 
+conclusions drawn from complex data can misinform policy decisions. It is essential
+to approach the data with a critical and nuanced perspective, acknowledging its 
+limitations and considering the broader socio-economic and political contexts that 
+contribute to incarceration trends. In summary, while the dataset is a valuable 
+resource for understanding incarceration trends in the U.S., its limitations and
+potential biases must be carefully managed to ensure accurate and ethical use.
+
 
 
 ### Trends Over Time Chart
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+This chart shows the prison population trends for Black, White, and Latinx groups
+from 1990 to the most recent year available in the dataset, illustrating how these 
+populations have changed over time and highlighting significant disparities. The 
+chart reveals a notable increase in both Black and White prison populations from 
+1990 to around 2010, reflecting the impact of policies such as the War on Drugs. 
+Around 2010, these populations begin to plateau and eventually decrease, suggesting 
+the influence of criminal justice reforms aimed at reducing mass incarceration. 
+Throughout the timeline, the Black prison population remains consistently higher 
+than both White and Latinx populations, underscoring persistent racial disparities. 
+The Latinx prison population shows a relatively stable trend with a slight increase 
+until around 2005, followed by a decline, potentially reflecting different impacts 
+of immigration policies and enforcement. Towards the most recent years, there is
+a sudden drop in all three populations, which may be attributed to recent reforms,
+data collection anomalies, or significant policy changes aimed at reducing prison 
+populations. This visualization provides insights into racial disparities within 
+the prison system and helps understand how various policies and societal changes 
+have impacted these groups differently over time.
 
-The first chart that you will create and include will show the trend over time of your variable/topic. Think carefully about what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
 
-- Show more than one, but fewer than ~10 trends
-  - This may mean showing the same measure for different locations or different racial groups. Think carefully about a meaningful comparison of locations (e.g., the top 10 counties in a state, top 10 states, etc.)
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- You need a legend for your different line colors and a clear legend title
 
-When we say "clear" or "human readable" titles and labels, that means that you should not just display the variable name.
 
-Here's an example of how to run an R script inside an RMarkdown file:
+``````{r, warning = FALSE, message = FALSE}
+# Prepare the data
+trend_data <- prison_pop %>%
+  filter(year >= 1990) %>%
+  group_by(year) %>%
+  summarise(
+    black_prison_pop = sum(black_prison_pop, na.rm = TRUE),
+    white_prison_pop = sum(white_prison_pop, na.rm = TRUE),
+    latinx_prison_pop = sum(latinx_prison_pop, na.rm = TRUE)
+  ) %>%
+  pivot_longer(cols = c(black_prison_pop, white_prison_pop, latinx_prison_pop), names_to = "race", values_to = "prison_pop")
 
-``````{r, echo = FALSE, code = readLines("chart1_example.R")}
+# Create the line chart
+ggplot(trend_data, aes(x = year, y = prison_pop, color = race)) +
+  geom_line(size = 1) +
+  labs(
+    title = "Trends in Prison Population Over Time by Race",
+    x = "Year",
+    y = "Prison Population",
+    color = "Race"
+  )
 ```
 
 ### Variable Comparison Chart
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+The chart titled "Relationship Between Prison Population and Black Prison Population" 
+is a scatter plot illustrating the correlation between the total prison population 
+and the Black prison population across various counties. It shows a positive correlation, 
+indicated by the upward-sloping blue regression line, suggesting that counties 
+with higher total prison populations tend to have higher Black prison populations. 
+The clustering of points around the line reflects a strong relationship, while 
+outliers indicate counties with disproportionate Black prison populations. This
+visualization was included to highlight potential racial disparities in incarceration
+and to underscore areas where the Black prison population deviates from the overall 
+trend, warranting further investigation and potential policy interventions.
 
-The second chart that you will create and include will show how two different (continuous) variables are related to one another. Again, think carefully about what such a comparison means and what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
 
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- If you choose to add a color encoding (not required), you need a legend for your different color and a clear legend title
+```{r, warning = FALSE, message = FALSE}
+prison_pop <- read_csv("https://raw.githubusercontent.com/melaniewalsh/Neat-Datasets/main/us-prison-pop.csv")
+comparison_data <- prison_pop %>%
+  filter(!is.na(total_prison_pop) & !is.na(black_prison_pop))
+
+ggplot(data = comparison_data, aes(x = total_prison_pop, y = black_prison_pop)) +
+  geom_point(color = "pink") +
+  geom_smooth(method=lm, color= "blue",  se=FALSE) +
+  labs(title = paste("Relationship Between Prison Population and Black",
+                     "Prison Population"),
+       x = "Total Prison Population",
+       y = "Black Jail Population")
+```
+
 
 ### Map
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+The map titled "Geographic Distribution of Total Prison Population by State" 
+visualizes the total prison population across the United States using a color 
+gradient from yellow to red, indicating lower to higher populations, respectively.
+This map was included to provide a geographical perspective on the distribution 
+of prison populations, highlighting regional disparities. The map reveals that 
+states like California, Texas, and Florida have significantly higher prison populations,
+as indicated by darker shades of red, while states in the Midwest and Northeast 
+show lighter shades of yellow, indicating lower populations. This visualization 
+underscores the regional variations in prison populations, which could be influenced
+by state-specific policies, crime rates, and demographic factors. By illustrating 
+these patterns, the map offers valuable insights for policymakers to understand 
+where prison populations are concentrated and highlights areas that may benefit 
+from targeted criminal justice reforms.
 
-The last chart that you will create and include will show how a variable is distributed geographically. Again, think carefully about what such a comparison means and what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
 
-- Your map needs a title
-- Your color scale needs a legend with a clear label
-- Use a map based coordinate system to set the aspect ratio of your map
+```{r}
+state_abbrev_to_name <- data.frame(
+  state = state.abb,
+  full_name = tolower(state.name)
+)
+
+state_data <- prison_pop %>%
+  group_by(state) %>%
+  summarise(total_prison_pop = sum(total_prison_pop, na.rm = TRUE)) %>%
+  left_join(state_abbrev_to_name, by = "state")
+
+state_data <- state_data %>%
+  rename(region = full_name)
+
+us_states <- map_data("state")
+
+map_data <- merge(us_states, state_data, by = "region", all.x = TRUE)
+
+ggplot(map_data, aes(long, lat, group = group, fill = total_prison_pop)) +
+  geom_polygon(color = "white") +
+  scale_fill_gradient(low = "yellow", high = "red", na.value = "grey50") +
+  labs(
+    title = "Geographic Distribution of Total Prison Population by State",
+    fill = "Total Prison Population"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.title = element_text(hjust = 0.5)
+  ) +
+  coord_map()
+```
 
